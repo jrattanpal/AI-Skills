@@ -659,6 +659,68 @@ When researching a feature:
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** 2026-04-21  
+---
+
+## Live Competitor Research with Browser Tool (v2.0)
+
+When browser MCP tools are available, use them for current competitive intelligence:
+
+### Screenshot Workflow
+
+1. **Navigate** to competitor product page using `browser__browser_navigate`
+2. **Screenshot** the relevant UI using `browser__browser_screenshot`
+3. **Analyze** the accessibility tree using `browser__browser_a11y_tree` to understand interaction patterns
+4. **Document** findings with reference to what was observed live vs from documentation
+
+### Key Pages to Check Per Competitor
+
+**OpenAI GPT Builder:**
+- `platform.openai.com/assistants` — Assistant/GPT configuration UI
+- `chatgpt.com/gpts` — GPT Store (if accessible)
+- Check: instruction editor, tool configuration, knowledge upload, sharing settings
+
+**Microsoft Copilot Studio:**
+- `copilotstudio.microsoft.com` — Bot builder interface
+- Check: topic editor, action configuration, testing panel, deployment options
+
+**Google Vertex AI:**
+- `cloud.google.com/vertex-ai` — Agent Builder
+- Check: agent configuration, tool setup, grounding settings, deployment
+
+### When to Use Live Research vs Cached
+
+- **Use live research** when: checking current pricing, verifying a specific UI claim, looking for new features announced recently
+- **Use cached research** when: the topic was already researched within freshness window, you need broad competitive context that doesn't change week-to-week
+
+---
+
+## Internal Code Research with Codesearch (v2.0)
+
+When codesearch tools are available, use them to find real Salesforce implementation patterns:
+
+### Finding Internal Competitive Context
+
+Search for internal documents comparing Salesforce to competitors:
+- `content:"competitive analysis" content:"prompt builder"`
+- `content:"vs OpenAI" OR content:"vs Microsoft Copilot"`
+- Check internal wikis and design docs for prior competitive research
+
+### Finding Implementation Patterns
+
+When researching how Salesforce implements a feature competitors also offer:
+- Search for the feature's class names or API endpoints
+- Read the actual implementation to understand capabilities and limitations
+- This gives ground truth that marketing docs may overstate or understate
+
+### Combining Internal + External Research
+
+The strongest competitive analysis combines:
+1. **External:** What competitors publicly offer (from browser/web search)
+2. **Internal:** What Salesforce actually has implemented (from codesearch)
+3. **Gap analysis:** Where internal implementation exceeds or trails competitor offerings
+
+---
+
+**Version:** 2.0  
+**Last Updated:** 2026-04-24  
 **Next Review:** Quarterly or when major competitor changes occur

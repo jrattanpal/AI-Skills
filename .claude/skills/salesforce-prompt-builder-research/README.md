@@ -1,8 +1,19 @@
-# Salesforce Prompt Builder Research Skill
+# Salesforce Prompt Builder Research Skill v2.0
 
 ## Overview
 
-This skill automates research about Salesforce Prompt Builder, Agentforce, Model Context Protocol (MCP), and related Salesforce AI platform capabilities. It codifies the research methodology used to investigate features, design integrations, and plan product development.
+This skill automates research about Salesforce Prompt Builder, Agentforce, Model Context Protocol (MCP), and related Salesforce AI platform capabilities. It uses **research caching** to avoid redundant work, **parallel research streams** for speed and depth, and **auto-publishes findings to Slack canvases** for team access.
+
+## What's New in v2.0
+
+| Feature | v1.1 | v2.0 |
+|---------|------|------|
+| Research caching | No (re-researches everything) | Yes (checks index, skips fresh topics) |
+| Agent architecture | Single monolithic agent | Parallel focused streams |
+| Internal tools | Web search only | Codesearch, enterprise search, GUS, browser |
+| Output sharing | Local file only | Slack canvas auto-publish + local file |
+| Confidence scoring | No | Yes (HIGH/MEDIUM/LOW per finding) |
+| Token efficiency | High (large briefs) | Low (cached + focused briefs) |
 
 ## When to Use
 
@@ -13,9 +24,9 @@ Invoke this skill when you:
 - Want to explore Salesforce AI platform capabilities
 - Need to design integrations with other Salesforce products
 - Want to understand security models for AI features
-- **Need competitive analysis of AI skill platforms**
-- **Want to identify Salesforce's competitive advantages**
-- **Need to understand how competitors handle a feature**
+- Need competitive analysis of AI skill platforms
+- Want to identify Salesforce's competitive advantages
+- Need to understand how competitors handle a feature
 
 ## Quick Start
 
@@ -26,63 +37,95 @@ Just ask naturally:
 "How does Agentforce integrate with Einstein Trust Layer?"
 "Research MCP server authentication patterns for Salesforce"
 "What's the best way to design a tool palette UI?"
-"How do competitors handle visual skill builders? What's our competitive advantage?"
+"How do competitors handle visual skill builders?"
 "Research OpenAI GPT Builder vs Salesforce Prompt Builder"
 ```
 
 The skill will:
-1. Clarify your research needs
-2. Spawn a research agent with a comprehensive brief
-3. **Research competitors and identify Salesforce advantages** (automatically)
-4. Synthesize findings into a structured report with competitive analysis
-5. Save the research to `.agents/artifacts/` for future reference
-6. Answer your question with actionable recommendations and positioning strategy
+1. **Check the research cache** for existing findings on this topic
+2. **Skip re-researching** anything that's already fresh in the cache
+3. **Spawn parallel research agents** only for topics that need new/refreshed data
+4. **Use internal tools** (codesearch, enterprise search, browser) when available for richer findings
+5. **Synthesize** with confidence scores and comparison matrices
+6. **Save locally** and present findings directly in conversation
+7. **Optionally publish** to Slack canvas if tools are available and you request it
+8. **Update the research index** so future requests are faster
 
 ## Skill Structure
 
 ```
 salesforce-prompt-builder-research/
-├── SKILL.md                    # Main skill definition (with competitive analysis)
+├── SKILL.md                    # Main skill definition (v2.0 methodology)
 ├── README.md                   # This file
 ├── references/
-│   ├── research-sources.md     # Guide to documentation sources
-│   └── competitive-analysis-framework.md  # 🆕 Competitive research methodology
+│   ├── research-sources.md     # Guide to documentation sources + MCP tools
+│   └── competitive-analysis-framework.md  # Competitive research methodology
 └── examples/
-    └── example-research-briefs.md  # Template research briefs (incl. competitive)
+    └── example-research-briefs.md  # Template research briefs per stream
+
+Supporting files:
+.agents/artifacts/
+├── research-index.md           # Research cache index (freshness tracking)
+└── [research artifacts...]     # Saved research outputs
 ```
 
-## What This Skill Does
+## How the Cache Works
 
-### Phase 1: Define Research Scope
-- Analyzes your request to determine focus areas
-- Asks clarifying questions if needed
-- Identifies specific topics to research
-- Determines appropriate research depth
+The skill maintains a **research index** at `.agents/artifacts/research-index.md` that tracks:
+- What topics have been researched
+- When the research was done
+- How long it stays fresh (30-180 days depending on category)
+- Keywords for matching future requests
 
-### Phase 2: Execute Research
-- Spawns a specialized research agent
-- Provides a comprehensive research brief
-- Searches official Salesforce documentation
-- Explores technical specifications and APIs
-- Investigates Agentforce, MCP, and related tools
-- **Researches competitor platforms** (OpenAI, Microsoft, Google, etc.)
-- **Analyzes competitive implementations and user feedback**
-- Reviews industry patterns and best practices
+**Before any research, the skill checks this index.** If a matching fresh artifact exists, it reads it directly instead of spawning an expensive research agent. This saves 60-70% of token usage for repeat topics.
 
-### Phase 3: Synthesize Findings
-- Reviews research quality and completeness
-- Extracts actionable insights
-- **Creates competitive comparison matrix**
-- **Identifies Salesforce's unique advantages**
-- **Develops positioning statements vs competitors**
-- Creates structured documentation
-- Saves research artifacts for future reference
+### Freshness Rules
 
-### Phase 4: Answer Your Question
-- Provides direct answer to your original question
-- Supports with research findings
-- Offers implementation recommendations
-- Suggests next steps
+| Category | Stale After | Example |
+|----------|-------------|---------|
+| Competitive | 30 days | "How does Glean compare?" |
+| Salesforce docs | 90 days | "How does Prompt Builder work?" |
+| Architecture | 180 days | "What's the skills platform plan?" |
+| Internal/roadmap | 60 days | "What's on the team's sprint?" |
+| Security | 90 days | "How does Einstein Trust Layer work?" |
+
+## Parallel Research Streams
+
+Instead of one large agent, v2.0 spawns focused parallel agents:
+
+### Stream 1: Salesforce Internal Context
+- **Tools:** Codesearch (real code), enterprise search (design docs), GUS (roadmap)
+- **Output:** Current state, architecture, API patterns, internal context
+- **Brief size:** ~400 words (focused)
+
+### Stream 2: Competitive & Market
+- **Tools:** Browser (live screenshots), web search (articles/reviews), Slack search (intel)
+- **Output:** Competitor features, comparison matrix, user sentiment
+- **Brief size:** ~400 words (focused)
+
+### Synthesis (after streams complete)
+- Merges stream outputs with cached artifacts
+- Creates comparison matrix and positioning statements
+- Produces standardized research document
+
+**Not every request needs both streams.** Simple internal questions skip competitive research. Pure competitive analysis skips internal codesearch.
+
+## Output & Sharing
+
+### Always: Local Artifact + Direct Presentation
+Every research output is:
+1. Saved to `.agents/artifacts/` with a descriptive filename (serves as cache for future requests)
+2. Presented directly in the conversation with executive summary, findings, and recommendations
+
+This works for everyone regardless of what tools are available.
+
+### Optional: Slack Canvas (if tools available)
+If Slack MCP tools are configured in your environment, you can ask to publish findings to a Slack canvas:
+- "Research [topic] and publish to Slack"
+- The canvas includes executive summary, comparison matrix, positioning, and recommendations
+
+### Optional: Google Doc
+Ask "publish to Google Docs" to get a shareable Doc (requires Google MCP tools).
 
 ## Research Topics Covered
 
@@ -94,167 +137,56 @@ salesforce-prompt-builder-research/
 - **Salesforce Security**: OLS, FLS, sharing rules, audit logging
 - **Integration Patterns**: APIs, external services, MCP servers
 - **UI/UX Patterns**: Lightning Design System, canvas design, accessibility
-- **🆕 Competitive Landscape**: OpenAI, Microsoft, Google, Anthropic, Amazon AI platforms
-- **🆕 Competitive Analysis**: Feature comparison, user feedback, pricing, positioning
-- **🆕 Salesforce Advantages**: Native CRM, Enterprise security, AppExchange, Trust Layer
-- **🆕 Differentiation Strategy**: Positioning statements, go-to-market implications
-
-## Example Usage
-
-### Example 1: Feature Feasibility
-
-**You ask:**
-> "Can we add a skill export feature that generates skill.md files?"
-
-**Skill executes:**
-1. Researches skill.md format structure
-2. Investigates Salesforce metadata export patterns
-3. Explores file generation APIs in Lightning
-4. Reviews MCP configuration format
-
-**You get:**
-- Feasibility assessment (Yes/No)
-- Recommended technical approach
-- Implementation complexity estimate
-- Full research saved to artifacts
-
-### Example 2: Integration Design
-
-**You ask:**
-> "How should Prompt Builder integrate with Slack?"
-
-**Skill executes:**
-1. Researches Salesforce-Slack native integration
-2. Explores MCP server approach
-3. Studies authentication patterns
-4. Investigates bidirectional messaging
-
-**You get:**
-- Integration architecture recommendation
-- Authentication strategy
-- Example skill workflow
-- Security considerations
-
-### Example 3: Security Analysis
-
-**You ask:**
-> "How do we prevent prompt injection in skills?"
-
-**Skill executes:**
-1. Researches Einstein Trust Layer capabilities
-2. Studies prompt injection attack vectors
-3. Reviews industry best practices
-4. Explores input validation techniques
-
-**You get:**
-- Attack vector catalog
-- Multi-layer defense strategy
-- Code examples for validation
-- Testing methodology
+- **Competitive Landscape**: OpenAI, Microsoft, Google, Anthropic, Amazon
+- **Market Positioning**: Feature comparison, differentiation, go-to-market
 
 ## Research Patterns
 
-The skill recognizes these common patterns:
+| Pattern | Request | Streams Used | Output |
+|---------|---------|--------------|--------|
+| Feature Feasibility | "Can we add [X]?" | Internal + Competitive | Go/No-Go + positioning |
+| Integration Design | "How to integrate with [Y]?" | Internal + Maybe Competitive | Architecture + differentiation |
+| Competitive Analysis | "How do competitors do [Z]?" | Competitive only | Comparison matrix + strategy |
+| Security Analysis | "How to secure [feature]?" | Internal + Maybe Competitive | Security architecture |
+| UX/UI Patterns | "How to design [UI]?" | Internal + Competitive | Recommendations + screenshots |
 
-| Pattern | User Request | Research Focus | Output |
-|---------|--------------|----------------|--------|
-| **Feature Feasibility** | "Can we add [feature]?" | Technical constraints, APIs, alternatives, **competitors** | Go/No-Go assessment + **competitive positioning** |
-| **Integration Design** | "How to integrate with [system]?" | APIs, auth, data flow, **competitor integrations** | Architecture recommendation + **differentiation** |
-| **Competitive Analysis** | "How do competitors do [thing]?" | Competitor implementations, user feedback, **Salesforce advantages** | **Detailed comparison matrix + positioning strategy** |
-| **Security & Compliance** | "How do we secure [feature]?" | Trust Layer, threat model, **competitor security**, defenses | Security architecture + **competitive security advantages** |
-| **UX/UI Patterns** | "How should we design [UI]?" | LDS components, **competitor UX**, Salesforce patterns | UI/UX recommendations + **differentiation opportunities** |
+## MCP Tools Used
 
-## Research Quality Standards
+The skill leverages these internal tools (no manual setup needed):
 
-All research outputs meet these criteria:
-
-- ✅ **Accurate**: Cross-referenced with official sources
-- ✅ **Relevant**: Directly applicable to your question
-- ✅ **Actionable**: Includes specific recommendations
-- ✅ **Complete**: Covers all aspects of the topic
-- ✅ **Clear**: Well-organized and understandable
-- ✅ **Current**: Focuses on 2024-2026 capabilities
-
-## Research Sources
-
-The skill searches these primary sources:
-
-- **Trailhead**: Learning paths, conceptual overviews
-- **Salesforce Developers**: Technical docs, API references
-- **Salesforce Help**: Admin guides, setup instructions
-- **Release Notes**: Latest features, breaking changes
-- **modelcontextprotocol.io**: MCP specification
-- **Community**: Stack Exchange, blogs, GitHub
-
-See `references/research-sources.md` for detailed source guide.
-
-## Artifacts Saved
-
-Research is saved to `.agents/artifacts/` with descriptive names:
-
-```
-salesforce-[topic]-research-2026-04-21.md
-prompt-builder-[feature]-analysis-2026-04-21.md
-mcp-integration-patterns-2026-04-21.md
-agentforce-capabilities-research-2026-04-21.md
-```
-
-These artifacts are permanent and can be referenced in future conversations.
+- **Codesearch** — Find real Salesforce implementation patterns in source code
+- **Enterprise Search** — Confluence, Quip, internal docs for design decisions
+- **GUS** — Epic and work item context for roadmap awareness
+- **Browser** — Live screenshots of competitor product pages
+- **Slack** — Read/create/update canvases, search for competitive intel
+- **Google Docs** — Optional output format for shareable documents
 
 ## Tips for Best Results
 
 ### Be Specific
-❌ "Research Agentforce"
-✅ "How does Agentforce's Atlas Reasoning Engine handle multi-step planning?"
+- Bad: "Research Agentforce"
+- Good: "How does Agentforce's Atlas Reasoning Engine handle multi-step planning?"
 
 ### State Your Goal
-❌ "Look up MCP servers"
-✅ "I need to design MCP server authentication for enterprise security"
+- Bad: "Look up MCP servers"
+- Good: "I need to design MCP server authentication for enterprise security"
 
 ### Mention Constraints
-❌ "How to add notifications?"
-✅ "How to add Slack notifications using only Salesforce native features?"
+- Bad: "How to add notifications?"
+- Good: "How to add Slack notifications using only Salesforce native features?"
 
-### Request Specific Depth
-❌ "Tell me about Flow Builder"
-✅ "I need technical details about Flow Builder's drag-and-drop canvas implementation"
-
-## Customization
-
-To customize this skill for your needs:
-
-1. **Add Sources**: Edit `references/research-sources.md` to include internal wikis or documentation
-2. **Add Templates**: Create new research brief templates in `examples/`
-3. **Adjust Depth**: Modify default word limits in `SKILL.md`
-4. **Add Patterns**: Document new research patterns you discover
+### Control Sharing
+- Default: saves locally + presents in conversation (works everywhere)
+- Slack: "Research [topic] and publish to Slack canvas" (requires Slack tools)
+- Google Doc: "Research [topic] and publish to Google Docs" (requires Google tools)
 
 ## Version History
 
+- **v2.0.0** (2026-04-24): Research caching, multi-agent parallel streams, MCP tool integration, Slack canvas auto-publish, confidence scoring
+- **v1.1.0** (2026-04-21): Added competitive analysis framework
 - **v1.0.0** (2026-04-21): Initial skill creation
-
-## Future Enhancements
-
-Potential improvements for this skill:
-
-- [ ] Cache research results to avoid duplicate work
-- [ ] Integration with Salesforce's internal documentation systems
-- [ ] Automatic following of documentation links and references
-- [ ] Multi-agent parallel research for complex topics
-- [ ] Comparison matrix generation for feature options
-- [ ] Risk assessment templates for new features
-
-## Feedback
-
-As you use this skill, note:
-- Which research briefs worked best
-- What sources were most valuable
-- What topics need deeper coverage
-- How to improve research quality
-
-Update the skill based on your learnings!
 
 ---
 
-**Created**: 2026-04-21  
-**Use case**: Product research for Salesforce Prompt Builder features  
-**Maintained by**: [Your team]
+**Created**: 2026-04-21 | **Last Updated**: 2026-04-24
+**Use case**: Product research for Salesforce Prompt Builder features

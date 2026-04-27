@@ -1,14 +1,14 @@
 ---
 name: Salesforce Prompt Builder Research
 description: This skill should be used when the user asks to "add a new feature in Prompt Builder", "research Prompt Builder capabilities", "understand Agentforce integration", "explore MCP for Salesforce", "competitive analysis for Prompt Builder", or needs to investigate Salesforce AI platform features for product development with competitive positioning.
-version: 1.1.0
+version: 2.0.0
 ---
 
-# Salesforce Prompt Builder Research
+# Salesforce Prompt Builder Research v2.0
 
 ## Purpose
 
-Research and analyze Salesforce Prompt Builder, Agentforce, Model Context Protocol (MCP), and related Salesforce AI platform capabilities to inform feature planning and product development decisions.
+Research and analyze Salesforce Prompt Builder, Agentforce, Model Context Protocol (MCP), and related Salesforce AI platform capabilities to inform feature planning and product development decisions. This skill uses research caching to minimize token usage and parallel research streams for depth and speed.
 
 ## When to Use This Skill
 
@@ -22,7 +22,9 @@ Trigger this skill when the user:
 - Is designing features that involve Agentforce agents
 - Needs to understand how competitors handle similar capabilities
 
-## Research Methodology
+---
+
+## Research Methodology (5 Phases)
 
 ### Phase 1: Define Research Scope
 
@@ -32,402 +34,378 @@ Analyze the user's request to determine:
 3. **Specific topics**: Security, UI/UX patterns, integration points, data model, APIs, etc.
 4. **Competitive scope**: Which competitors to analyze, what features to compare
 5. **Output format**: Summary report, technical plan, comparison matrix, or architecture diagram
+6. **Sharing preference**: Local artifact (default), Slack canvas (if available), or Google Doc
 
 Ask clarifying questions if the scope is unclear:
 - "Are you looking for current capabilities or planning new features?"
 - "Do you need implementation details or high-level concepts?"
 - "Should I focus on admin/user experience or developer APIs?"
-- "What's the primary goal: feasibility check, technical design, or competitive analysis?"
 - "Should I include competitive analysis and identify Salesforce's advantages?"
+- "Would you like me to publish findings to a Slack canvas?" (only ask if Slack tools are available)
 
-### Phase 2: Execute Research
+---
 
-Use the **Agent** tool to spawn a research agent with a comprehensive brief. The agent should:
+### Phase 2: Cache Check & Research Planning
 
-**Research Sources to Explore:**
+**Goal: Avoid re-researching topics that already have fresh artifacts. This saves significant tokens.**
 
-1. **Official Salesforce Documentation**
-   - Trailhead learning paths
-   - Developer documentation (developer.salesforce.com)
-   - Setup and admin guides
-   - Release notes and product announcements
+#### Step 1: Read the Research Index
 
-2. **Technical Specifications**
-   - API references (REST, SOAP, Metadata, Tooling APIs)
-   - Schema definitions for relevant objects
-   - Integration patterns and best practices
-   - Governor limits and performance considerations
+Read `.agents/artifacts/research-index.md` to check for existing research.
 
-3. **Agentforce & AI Platform**
-   - Atlas Reasoning Engine capabilities
-   - Agent Builder features and modes (document, low-code canvas, pro-code)
-   - Agent Topics, Actions, and Scripts
-   - Einstein Trust Layer security model
-   - Data grounding and zero-retention policies
+#### Step 2: Match User's Request Against Index
 
-4. **Model Context Protocol (MCP)**
-   - MCP specification (modelcontextprotocol.io)
-   - Available MCP server implementations
-   - Salesforce-specific MCP patterns
-   - Authentication and security models
-   - Tool definition standards and best practices
+For each topic the user is asking about:
+- Search index entries by **keywords** and **category**
+- Check the **date** against the **freshness rules**:
 
-5. **Related Salesforce Products**
-   - Lightning Flow Builder (UI patterns, action types, security)
-   - Einstein AI features (prediction, content generation, trust layer)
-   - AppExchange ecosystem
-   - Integration capabilities (MuleSoft, External Services, Named Credentials)
+| Category | Stale After | Rationale |
+|----------|-------------|-----------|
+| competitive | 30 days | Competitor products change frequently |
+| competitive-comparison | 30 days | Same as above |
+| salesforce-docs | 90 days | Salesforce releases are quarterly |
+| salesforce-internal | 60 days | Roadmap/team context shifts mid-quarter |
+| architecture | 180 days | Patterns and plans are more stable |
+| security | 90 days | Security models change with releases |
+| industry-trends | 60 days | AI market moves fast |
+| feature-analysis | 90 days | Feature research stays valid through a quarter |
 
-6. **Competitive Analysis** (Always include for feature requests)
-   - Direct competitors (OpenAI GPT Builder, Microsoft Copilot Studio, Google Agent Builder, etc.)
-   - Similar capabilities in competitor products
-   - How competitors implement the requested feature
-   - Gaps in competitor offerings
-   - User feedback on competitor solutions
-   
-7. **Industry Context**
-   - AI agent and skill platform trends
-   - Enterprise security standards for AI
-   - Portability and interoperability standards
-   - Market positioning and differentiation opportunities
+#### Step 3: Classify Each Topic
 
-**Research Agent Instructions:**
+- **Fresh cache hit**: Artifact exists and is within freshness window. Read the existing artifact and use its content. Do NOT spawn a research agent for this topic.
+- **Stale cache hit**: Artifact exists but is past freshness window. Note what needs refreshing -- the research agent should focus on what has CHANGED since the artifact date, using the old artifact as baseline context.
+- **Cache miss**: No matching artifact. Mark as "new research needed."
 
-```
-Research the following topics related to Salesforce Prompt Builder and AI platform:
+#### Step 4: Plan Research Streams
 
-[Insert specific topics based on user request]
+Based on the classification, determine which research streams to spawn:
 
-Your research should cover:
+| Request Type | Stream 1 (Internal) | Stream 2 (Competitive) | Synthesis |
+|---|---|---|---|
+| Feature feasibility | Yes | Yes | Yes |
+| Competitive analysis | No | Yes | Yes |
+| Integration design | Yes | Maybe | Yes |
+| Security analysis | Yes | Maybe | Yes |
+| Internal context only | Yes | No | Direct answer |
 
-1. **Current State Analysis**
-   - What exists today in Salesforce
-   - How features currently work (architecture, UX, APIs)
-   - Limitations and constraints
-   - User feedback and pain points (if available)
+#### Step 5: Inform the User
 
-2. **Technical Deep Dive**
-   - Data models and object schemas
-   - Integration patterns and APIs
-   - Security and permission models
-   - Performance characteristics and limits
+Tell the user what was found:
+> "I found existing fresh research on [X] (from [date]). I need new/refreshed research on [Y] and [Z]. Spawning focused research agents for those topics."
 
-3. **Best Practices & Patterns**
-   - Recommended implementation approaches
-   - UI/UX conventions used in Salesforce
-   - Common integration patterns
-   - Security best practices
+---
 
-4. **Ecosystem Context**
-   - Related Salesforce features and how they integrate
-   - Third-party tools and extensions
-   - Open standards (like MCP) applicability
-   - Community resources and examples
+### Phase 3: Execute Research (Parallel Streams)
 
-5. **Competitive Analysis** (REQUIRED for all feature requests)
-   
-   Research these competitor platforms:
-   
-   **Primary Competitors:**
-   - OpenAI GPT Builder / Custom GPTs
-   - Microsoft Copilot Studio
-   - Google Vertex AI Agent Builder
-   - Anthropic Claude (skill system, MCP)
-   - Amazon Bedrock Agents
-   
-   **Adjacent Competitors:**
-   - Low-code automation: Zapier, Make (Integromat), n8n
-   - Workflow builders: Monday.com, Notion AI, ClickUp AI
-   - AI agent platforms: LangChain, AutoGPT, AgentGPT
-   - Enterprise AI: IBM watsonx, ServiceNow AI
-   
-   **For each relevant competitor, answer:**
-   
-   a) **Feature Implementation**
-      - Does this competitor offer the requested feature?
-      - How is it implemented (architecture, UI/UX)?
-      - What does it do well?
-      - What are its limitations or weaknesses?
-   
-   b) **User Experience**
-      - How easy is it to use (no-code, low-code, or code-required)?
-      - What's the learning curve?
-      - User feedback and reviews (if available)
-      - Common complaints or feature requests
-   
-   c) **Technical Approach**
-      - What technology/architecture do they use?
-      - Integration capabilities
-      - Security and compliance features
-      - Performance and scalability
-   
-   d) **Pricing & Business Model**
-      - Free vs paid tiers
-      - Enterprise pricing (if available)
-      - What's included at each level
-   
-   e) **Market Position**
-      - Target customer (SMB, mid-market, enterprise)
-      - Primary use cases
-      - Market share or adoption (if available)
-   
-   **Competitive Advantage Analysis (CRITICAL):**
-   
-   After researching competitors, identify Salesforce's advantages:
-   
-   1. **Unique Salesforce Strengths**
-      - What can Salesforce do that competitors cannot?
-      - Native CRM data access and integration
-      - Established enterprise relationships
-      - Salesforce security model and compliance
-      - Einstein Trust Layer and data protection
-      - AppExchange ecosystem
-      - Multi-tenant architecture benefits
-   
-   2. **Feature Differentiation Opportunities**
-      - How can we implement this feature BETTER than competitors?
-      - What unique value does Salesforce bring?
-      - How does this integrate with existing Salesforce products?
-      - What makes this "Salesforce-native" vs bolted-on?
-   
-   3. **Competitive Gaps to Exploit**
-      - What do competitors do poorly that we can excel at?
-      - What features do they lack?
-      - Where do users complain about competitors?
-      - What enterprise needs are unmet?
-   
-   4. **Threats to Address**
-      - What do competitors do better than us?
-      - Where might we fall short?
-      - What features are "table stakes" vs differentiators?
-      - How can we mitigate our weaknesses?
-   
-   5. **Go-to-Market Positioning**
-      - What's our compelling narrative?
-      - "Unlike [competitor], Salesforce Prompt Builder..."
-      - Target customer pain points we uniquely solve
-      - ROI and business value differentiation
+Spawn focused research agents in parallel. Each agent gets a narrow, specific brief (~400 words) rather than the full research scope. This reduces token usage per agent significantly.
 
-**Output Requirements:**
-- Organize findings by topic with clear headings
-- Include specific examples and technical details
-- Cite sources where possible
-- Flag any gaps in available information
-- Keep the report under [800/1500/2500 words depending on depth]
-- ALWAYS include competitive analysis section with comparison matrix
-- ALWAYS include Salesforce competitive advantages section
-- Focus on actionable insights for product development
+#### Stream 1: Salesforce Internal Context
 
-**Search Strategy:**
-- Start with official Salesforce documentation
-- Research competitor products (documentation, blogs, reviews)
-- Look for recent content (2023-2026) especially for Agentforce
-- Check user review sites (G2, Capterra, TrustRadius)
-- Search for "[competitor] vs Salesforce" comparisons
-- Look for analyst reports (Gartner, Forrester) if available
-- Cross-reference multiple sources for accuracy
-- Note when information is inferred vs explicitly documented
-```
+**When to spawn:** Feature feasibility, integration design, security analysis, internal context requests.
 
-### Phase 3: Synthesize Findings
-
-After the research agent completes:
-
-1. **Review Research Quality**
-   - Verify key findings are well-sourced
-   - Identify gaps requiring follow-up research
-   - Assess relevance to user's original question
-
-2. **Extract Actionable Insights**
-   - Technical feasibility assessment
-   - Architecture patterns to follow
-   - Security considerations to address
-   - Integration points to leverage
-   - Competitive positioning and differentiation
-   - Potential challenges and mitigations
-
-3. **Analyze Competitive Positioning**
-   
-   After competitive research, create a positioning analysis:
-   
-   a) **Competitive Comparison Matrix**
-      - Feature availability across competitors
-      - Implementation quality ratings
-      - Ease of use comparison
-      - Pricing and value comparison
-   
-   b) **Salesforce Advantages**
-      - Unique capabilities only Salesforce can offer
-      - Areas where Salesforce can excel
-      - Integration advantages with CRM
-   
-   c) **Competitive Threats**
-      - Where competitors are stronger
-      - Table stakes features we must match
-      - Mitigation strategies
-   
-   d) **Differentiation Strategy**
-      - How to position this feature uniquely
-      - "Better than" narrative vs each major competitor
-      - Target customer pain points we uniquely solve
-
-4. **Create Structured Output**
-   
-   Organize the findings into a clear document:
-   
-   ```markdown
-   # Research Summary: [Topic]
-   
-   ## Executive Summary
-   [2-3 sentence overview of findings including competitive position]
-   
-   ## Current State
-   [What exists today in Salesforce]
-   
-   ## Technical Architecture
-   [How it works - data model, APIs, integrations]
-   
-   ## Key Capabilities
-   [Specific features and functions available]
-   
-   ## Security Model
-   [Authentication, authorization, data protection]
-   
-   ## Integration Patterns
-   [How to connect with other systems/features]
-   
-   ## Competitive Analysis
-   
-   ### Competitor Landscape
-   [Overview of competitors offering similar capabilities]
-   
-   ### Feature Comparison Matrix
-   
-   | Feature Aspect | Salesforce | OpenAI GPT Builder | Microsoft Copilot Studio | Google Agent Builder | Others |
-   |----------------|------------|-------------------|-------------------------|---------------------|---------|
-   | [Feature 1]    | Rating     | Rating            | Rating                  | Rating              | Rating  |
-   | [Feature 2]    | Rating     | Rating            | Rating                  | Rating              | Rating  |
-   | Ease of Use    | Rating     | Rating            | Rating                  | Rating              | Rating  |
-   | Integration    | Rating     | Rating            | Rating                  | Rating              | Rating  |
-   | Enterprise Security | Rating | Rating            | Rating                  | Rating              | Rating  |
-   
-   ### How Competitors Implement This Feature
-   
-   **OpenAI GPT Builder:**
-   - [Implementation approach]
-   - Strengths: [what they do well]
-   - Weaknesses: [limitations]
-   
-   **Microsoft Copilot Studio:**
-   - [Implementation approach]
-   - Strengths: [what they do well]
-   - Weaknesses: [limitations]
-   
-   **[Other competitors as relevant]**
-   
-   ## Salesforce Competitive Advantages
-   
-   ### Unique Strengths
-   1. **[Advantage 1]**: [Why this matters and how to leverage it]
-   2. **[Advantage 2]**: [Why this matters and how to leverage it]
-   3. **[Advantage 3]**: [Why this matters and how to leverage it]
-   
-   ### Differentiation Opportunities
-   - How we can implement this BETTER than competitors
-   - What unique value Salesforce brings
-   - Native integration advantages
-   
-   ### Competitive Gaps to Exploit
-   - What competitors do poorly that we can excel at
-   - Unmet enterprise needs
-   - User pain points with competitor solutions
-   
-   ### Positioning Statement
-   "Unlike [competitor], Salesforce Prompt Builder [unique value proposition] 
-   because [competitive advantage], enabling customers to [customer benefit]."
-   
-   ## Best Practices
-   [Recommended approaches and conventions]
-   
-   ## Constraints & Considerations
-   [Limitations, governor limits, performance factors]
-   
-   ## Recommendations for Feature Development
-   
-   ### Technical Approach
-   [Specific guidance for the requested feature]
-   
-   ### Differentiation Strategy
-   [How to position and market this feature]
-   
-   ### Must-Have vs Nice-to-Have
-   - Table stakes: [Features we must match]
-   - Differentiators: [Features that set us apart]
-   - Future potential: [Features for later consideration]
-   
-   ## Competitive Threats & Mitigation
-   [Areas where competitors excel and how to address]
-   
-   ## Go-to-Market Implications
-   [How competitive landscape affects positioning and messaging]
-   
-   ## Follow-Up Research Needed
-   [Gaps or areas requiring deeper investigation]
-   ```
-
-4. **Save Research Artifacts**
-   
-   Store the research in `.agents/artifacts/` with a descriptive filename:
-   - `salesforce-[topic]-research-[date].md` for general research
-   - `prompt-builder-[feature]-analysis-[date].md` for feature-specific analysis
-   - `mcp-integration-patterns-[date].md` for integration research
-
-### Phase 4: Answer User's Question
-
-Present the findings back to the user:
-
-1. **Start with Direct Answer**
-   - Address the user's original question immediately
-   - Provide a clear recommendation or assessment
-
-2. **Support with Research**
-   - Summarize key findings that inform the answer
-   - Reference specific Salesforce features or capabilities
-   - Include technical details relevant to implementation
-
-3. **Provide Context**
-   - How this fits with existing Salesforce patterns
-   - What similar features exist in the platform
-   - Security and performance implications
-
-4. **Offer Next Steps**
-   - Suggest additional research areas if needed
-   - Recommend prototyping or testing approaches
-   - Point to relevant documentation or examples
-
-5. **Share Artifact Location**
-   - Tell the user where the full research is saved
-   - Mention it's available for future reference
-
-## Research Agent Configuration
-
-When spawning the research agent, use these parameters:
-
+**Agent configuration:**
 ```
 Agent({
-  description: "Research Salesforce [topic] for feature planning",
+  description: "Research Salesforce internal context for [topic]",
   subagent_type: "general-purpose",
-  prompt: [Detailed research brief as outlined above]
+  prompt: [Focused ~400-word brief for internal research]
 })
 ```
 
-**Tips for Effective Research Briefs:**
+**Brief template for Stream 1:**
+```
+Research Salesforce internal context for: [TOPIC]
 
-- **Be specific about what you need**: Architecture? UX patterns? Security model?
-- **Set word count limits**: Prevents overly verbose reports
-- **Request structured output**: Makes findings easier to parse
-- **Include context**: Why this research matters helps agent prioritize
-- **List specific questions**: Ensures all angles are covered
+Context: [Why this research is needed - 1-2 sentences]
+
+Research using these tools IN THIS ORDER:
+1. Use codesearch to find real implementation patterns (search for relevant class names, APIs, or features)
+2. Use enterprise search (search tool) to find internal design docs, Confluence pages, or Quip docs
+3. Use GUS skill to find related epics or work items on the roadmap
+4. Fall back to web search for official Salesforce documentation
+
+Specific questions to answer:
+- [Question 1]
+- [Question 2]
+- [Question 3]
+
+Tag each finding with confidence:
+- HIGH: Verified from code or official docs
+- MEDIUM: From credible secondary source
+- LOW: Inferred or from dated source
+
+Output: Structured findings under 800 words. Include code references where found.
+```
+
+**Tools this agent should use:**
+- `mcp__plugin_codesearch_codesearch__search` — Find real Prompt Builder implementation code
+- `mcp__plugin_codesearch_codesearch__blob` — Read specific source files
+- `mcp__plugin_codesearch_codesearch__tree` — Browse repository structure
+- `mcp__plugin_codesearch_codesearch__history` — See recent changes
+- `mcp__plugin_search_search__search` — Search Confluence, Quip, internal docs
+- GUS skill — Query work items, epics, sprint context
+
+#### Stream 2: Competitive & Market Research
+
+**When to spawn:** Feature feasibility, competitive analysis, any request where positioning matters.
+
+**Agent configuration:**
+```
+Agent({
+  description: "Research competitive landscape for [topic]",
+  subagent_type: "general-purpose",
+  prompt: [Focused ~400-word brief for competitive research]
+})
+```
+
+**Brief template for Stream 2:**
+```
+Research how competitors handle: [TOPIC]
+
+Context: [Why - 1-2 sentences]
+
+Research these competitors (focus on top 3-4 most relevant):
+- OpenAI GPT Builder / Custom GPTs
+- Microsoft Copilot Studio
+- Google Vertex AI Agent Builder
+- Anthropic Claude (skills, MCP)
+- Amazon Bedrock Agents
+- [Adjacent: Zapier, LangChain, ServiceNow as relevant]
+
+For each relevant competitor:
+1. Does it offer this feature? How is it implemented?
+2. What does it do well? What are its weaknesses?
+3. User sentiment (check reviews if accessible)
+
+Research approach:
+1. Use browser to navigate to competitor product pages and take screenshots of relevant UI
+2. Use web search for recent articles, documentation, user reviews
+3. Use Slack search for any internal competitive intel discussions
+
+Also identify:
+- Table stakes features (must match)
+- Differentiation opportunities (can excel at)
+- Threats to mitigate
+
+Tag findings with confidence (HIGH/MEDIUM/LOW).
+
+Output: Structured comparison under 800 words. Include comparison matrix table.
+```
+
+**Tools this agent should use:**
+- `mcp__plugin_browser_browser__browser_navigate` — Visit competitor product pages
+- `mcp__plugin_browser_browser__browser_screenshot` — Capture competitor UIs
+- `mcp__plugin_browser_browser__browser_a11y_tree` — Analyze competitor UI structure
+- `mcp__plugin_search_search__search` — Web search for articles, reviews, docs
+- `mcp__plugin_slack_slack__slack_search_public` — Find internal competitive discussions
+
+#### Stream 3: Synthesis (runs AFTER Streams 1 and 2 complete)
+
+**Always runs** (unless the request is trivially answered by a single cache hit).
+
+This step does NOT spawn a separate agent. Instead, the main conversation synthesizes:
+
+1. **Merge inputs:** Combine stream outputs with any cached artifacts from Phase 2
+2. **Create comparison matrix:** Feature availability across competitors with ratings
+3. **Identify advantages:** What Salesforce uniquely offers
+4. **Develop positioning:** "Unlike [competitor], Salesforce Prompt Builder..."
+5. **Produce recommendations:** Must Have / Should Have / Could Have
+6. **Format final output:** Use the standardized template (see Phase 4)
+
+---
+
+### Phase 4: Produce Output & Share
+
+#### Step 1: Format the Research Document
+
+Use this standardized template:
+
+```markdown
+# Research: [Topic]
+**Date:** [YYYY-MM-DD] | **Category:** [category] | **Confidence:** [high/medium/low]
+
+## Executive Summary
+[3-5 sentences: Direct answer + key finding + recommendation]
+
+## Key Findings
+
+### Current State in Salesforce
+[What exists today — from Stream 1 or cache]
+
+### Technical Architecture
+[How it works — data model, APIs, integration points]
+
+### Integration Points
+[How this connects to other Salesforce features]
+
+## Competitive Analysis
+
+### Comparison Matrix
+
+| Aspect | Salesforce | OpenAI | Microsoft | Google | Others |
+|--------|-----------|---------|-----------|---------|---------|
+| [Feature] | Rating | Rating | Rating | Rating | Rating |
+| Ease of Use | Rating | Rating | Rating | Rating | Rating |
+| Enterprise Security | Rating | Rating | Rating | Rating | Rating |
+| Integration | Rating | Rating | Rating | Rating | Rating |
+
+Rating scale: Strong / Adequate / Weak / Not Available
+
+### How Competitors Implement This
+[Key competitor approaches — from Stream 2 or cache]
+
+### Salesforce Competitive Advantages
+1. **[Advantage 1]**: [Why it matters]
+2. **[Advantage 2]**: [Why it matters]
+3. **[Advantage 3]**: [Why it matters]
+
+## Positioning
+
+### Positioning Statement
+"Unlike [competitor], Salesforce Prompt Builder [unique value] because [advantage], enabling [customer] to [benefit]."
+
+### Differentiation Strategy
+- How to implement this BETTER than competitors
+- What makes this "Salesforce-native" vs bolted-on
+
+## Recommendations
+
+### Must Have (Table Stakes)
+- [Features we must match to be competitive]
+
+### Should Have (Differentiators)
+- [Features that set us apart]
+
+### Could Have (Future)
+- [Features for later consideration]
+
+### Estimated Effort
+[Low / Medium / High with brief rationale]
+
+## Evidence & Sources
+- **Internal code:** [codesearch references, if any]
+- **Documentation:** [URLs consulted]
+- **Competitor screenshots:** [descriptions of what was captured]
+- **Confidence notes:** [areas where confidence is lower and why]
+
+## Follow-Up Research Needed
+[Gaps identified, areas requiring deeper investigation]
+```
+
+#### Step 2: Save Artifact Locally
+
+Save to `.agents/artifacts/` with a descriptive filename:
+- `salesforce-[topic]-research-[YYYY-MM-DD].md` for general research
+- `prompt-builder-[feature]-analysis-[YYYY-MM-DD].md` for feature analysis
+- `[competitor]-comparison-[YYYY-MM-DD].md` for competitive comparisons
+
+#### Step 3: Update Research Index
+
+Add a new entry to `.agents/artifacts/research-index.md` following the format:
+
+```markdown
+### [topic-key]: [Title]
+- **Date:** [YYYY-MM-DD]
+- **Artifact:** [filename]
+- **Category:** [category from freshness rules]
+- **Freshness:** [N days] (expires [date])
+- **Topics covered:** [comma-separated list]
+- **Keywords:** [comma-separated, for future matching]
+- **Confidence:** [high/medium/low]
+- **Slack Canvas ID:** [if published]
+- **Summary:** [One sentence]
+```
+
+#### Step 4: Publish to Slack Canvas (Optional — only if user requests AND Slack tools are available)
+
+This step is OPTIONAL. Only execute if:
+- The user explicitly asks to publish to Slack, AND
+- Slack MCP tools are available in the current environment
+
+If both conditions are met:
+1. **Check for existing canvas:** If the research-index entry for this topic has a Slack Canvas ID, use `slack_read_canvas` to get current content, then `slack_update_canvas` to replace relevant sections.
+2. **Create new canvas:** If no existing canvas, use `slack_create_canvas` with the research formatted in Markdown.
+3. **Announce:** Send a message to the team channel with a brief summary and link to the canvas.
+
+**Canvas formatting guidelines:**
+- Use headers (##, ###) for structure
+- Use tables for comparison matrices
+- Keep under 5,000 words for readability
+- Include "Last updated: [date]" at the top
+
+**If Slack is NOT available:** The local artifact in `.agents/artifacts/` IS the primary deliverable. Present the full research directly to the user in the conversation.
+
+#### Step 5: Present to User
+
+1. **Direct answer** to the original question (2-3 sentences)
+2. **Key insight** that might not be obvious
+3. **Top recommendation** with rationale
+4. **Links:** artifact path + Slack canvas link (if published)
+5. **Offer next steps:** "Want me to dive deeper on [specific area]?"
+
+---
+
+### Phase 5: Index Maintenance & Continuous Improvement
+
+After each research session:
+
+1. **Check index health:** If research-index.md exceeds 50 entries, archive the oldest stale entries to `research-index-archive.md`
+2. **Note tool effectiveness:** Which MCP tools returned useful results vs. empty results
+3. **Flag source gaps:** If a research source consistently returns nothing, note it for removal
+4. **Update competitor profiles:** If a competitor has launched something new, flag the competitive-analysis-framework.md for update
+
+---
+
+## Tools Available (MCP Integration)
+
+### Salesforce Code Intelligence
+
+| Tool | Purpose | Example Query |
+|------|---------|---------------|
+| `mcp__plugin_codesearch_codesearch__search` | Find real implementation code | `content:"PromptTemplate" lang:java` |
+| `mcp__plugin_codesearch_codesearch__blob` | Read a specific source file | Follow up on search results |
+| `mcp__plugin_codesearch_codesearch__tree` | Browse repository structure | Find related files in a package |
+| `mcp__plugin_codesearch_codesearch__history` | See recent changes to a file | What changed recently in Prompt Builder code |
+| `mcp__plugin_codesearch_codesearch__blame` | See who wrote specific code | Understand ownership |
+
+**Usage guidance:** When researching how a Salesforce feature works internally, use codesearch to find real implementation patterns. This is far more accurate than documentation alone. Start with broad search, then read specific blobs for detail.
+
+### Enterprise Knowledge
+
+| Tool | Purpose | Example Query |
+|------|---------|---------------|
+| `mcp__plugin_search_search__search` | Search Confluence, Quip, Slack, internal docs | "Prompt Builder architecture design doc" |
+| GUS skill (`sfcli:gus`) | Query work items, epics, sprints | Related roadmap items, what's in flight |
+
+**Usage guidance:** Always search enterprise knowledge sources before external web search. Internal design docs contain architectural decisions and rationale not found in public documentation.
+
+### Competitive Intelligence
+
+| Tool | Purpose | When to Use |
+|------|---------|------------|
+| `mcp__plugin_browser_browser__browser_navigate` | Visit competitor product pages live | Current feature state, pricing pages |
+| `mcp__plugin_browser_browser__browser_screenshot` | Capture competitor UI evidence | Visual comparison for reports |
+| `mcp__plugin_browser_browser__browser_a11y_tree` | Analyze competitor UI structure | Understanding interaction patterns |
+| `mcp__plugin_search_search__search` | Search web for reviews, articles | User sentiment, announcements |
+| `mcp__plugin_slack_slack__slack_search_public` | Find internal competitive intel | What has the team said about competitors |
+
+**Usage guidance:** Navigate to competitor product pages and take screenshots for current visual evidence. This is more reliable than blog posts which may be outdated. Key URLs: platform.openai.com, copilotstudio.microsoft.com, cloud.google.com/vertex-ai.
+
+### Output & Sharing
+
+| Tool | Purpose | When to Use |
+|------|---------|------------|
+| `mcp__plugin_slack_slack__slack_create_canvas` | Create Slack canvas with research | Primary output for team sharing |
+| `mcp__plugin_slack_slack__slack_update_canvas` | Update existing research canvas | Refresh findings, add sections |
+| `mcp__plugin_slack_slack__slack_read_canvas` | Read existing canvas content | Check what was previously shared |
+| `mcp__plugin_slack_slack__slack_send_message` | Announce research in channel | Notify team of new findings |
+| `mcp__plugin_slack_slack__slack_search_channels` | Find team channels | Identify where to publish |
+| `mcp__plugin_google_google__docs_create` | Create Google Doc with research | When user requests Doc format |
+| `mcp__plugin_google_google__docs_search` | Find existing research Docs | Check for prior research in Docs |
+
+**Usage guidance:** These tools are OPTIONAL. Not all users will have Slack configured. The local artifact is always the primary record. Only offer Slack publishing if these tools are available in the environment AND the user requests it.
+
+---
 
 ## Common Research Patterns
 
@@ -435,14 +413,14 @@ Agent({
 
 **User asks**: "Can we add [feature] to Prompt Builder?"
 
-**Research focus**:
-- Existing similar features in Salesforce
+**Research focus:**
+- Existing similar features in Salesforce (codesearch + enterprise search)
 - Technical constraints (governor limits, security)
-- Required APIs or integration points
+- How competitors implement it (browser + web search)
 - Data model implications
 - User permissions and access control
 
-**Output**: Go/No-Go assessment with implementation complexity estimate
+**Output**: Go/No-Go assessment with implementation complexity and competitive positioning
 
 ---
 
@@ -450,43 +428,27 @@ Agent({
 
 **User asks**: "How should Prompt Builder integrate with [Salesforce product]?"
 
-**Research focus**:
-- Target product's APIs and extension points
-- Common integration patterns used in Salesforce
+**Research focus:**
+- Target product's APIs (codesearch for real code patterns)
+- Common integration patterns (enterprise search for design docs)
 - Authentication and authorization models
-- Data flow and synchronization requirements
-- Error handling and resilience patterns
+- How competitors handle similar integrations (browser)
 
-**Output**: Integration architecture with recommended approach
+**Output**: Integration architecture with recommended approach and differentiation
 
 ---
 
 ### Pattern 3: Competitive Analysis
 
-**User asks**: "How do competitors handle [capability]?" or "What's our competitive advantage for [feature]?"
+**User asks**: "How do competitors handle [capability]?"
 
-**Research focus**:
-- Competitor product offerings and implementations
-- Feature comparison across major platforms
-- User reviews and feedback on competitor solutions
-- Pricing and business model comparison
-- Salesforce's unique advantages and differentiation
-- Gaps in competitor offerings to exploit
-- Threats from competitor strengths
-- Industry-standard approaches and best practices
-- User expectations based on market trends
+**Research focus:**
+- Competitor product pages and documentation (browser)
+- User reviews and sentiment (web search)
+- Internal competitive discussions (Slack search)
+- Feature comparison matrix
 
-**Competitors to research**:
-- Primary: OpenAI, Microsoft, Google, Anthropic, Amazon
-- Adjacent: Zapier, Make, Monday.com, LangChain, etc.
-- Enterprise: IBM, ServiceNow, Oracle, SAP
-
-**Output**: 
-- Detailed comparison matrix with feature ratings
-- Competitive advantage analysis
-- Differentiation strategy recommendations
-- Positioning statement ("Unlike X, Salesforce...")
-- Go-to-market implications
+**Output**: Detailed comparison matrix + positioning strategy + recommendations
 
 ---
 
@@ -494,14 +456,13 @@ Agent({
 
 **User asks**: "How do we secure [feature] in Prompt Builder?"
 
-**Research focus**:
-- Einstein Trust Layer capabilities
+**Research focus:**
+- Einstein Trust Layer capabilities (codesearch + docs)
 - Salesforce security model (OLS, FLS, sharing rules)
-- Authentication patterns for external integrations
-- Data residency and retention policies
-- Audit and compliance requirements
+- How competitors handle security (browser + search)
+- Industry standards and compliance requirements
 
-**Output**: Security architecture with risk mitigations
+**Output**: Security architecture with competitive security advantages
 
 ---
 
@@ -509,87 +470,60 @@ Agent({
 
 **User asks**: "How should we design the UI for [feature]?"
 
-**Research focus**:
-- Lightning Design System components
-- Common Salesforce UI patterns (Flow Builder, Setup pages)
-- User personas and workflows
+**Research focus:**
+- Lightning Design System components (docs)
+- Existing Salesforce UI patterns (codesearch for LWC examples)
+- Competitor UI approaches (browser screenshots)
 - Accessibility requirements
-- Mobile considerations
 
-**Output**: UI/UX recommendations with Salesforce pattern alignment
+**Output**: UI/UX recommendations with Salesforce pattern alignment and screenshots
 
 ---
 
-## Tools Available
+## Confidence Scoring
 
-### Web Research
-- **WebSearch**: Find recent articles, documentation, announcements
-- **WebFetch**: Retrieve specific documentation pages or API references
+All research findings must be tagged with confidence levels:
 
-### Code Exploration
-- **Grep**: Search for patterns in local documentation or code examples
-- **Read**: Review documentation files or technical specs
+| Level | Meaning | Source Example |
+|-------|---------|---------------|
+| **HIGH** | Verified from official docs or source code | Codesearch result, official API docs, Salesforce Help |
+| **MEDIUM** | From credible secondary source | Blog post, community answer, single documentation reference |
+| **LOW** | Inferred, from dated source, or unverifiable | Old blog post, forum speculation, inference from patterns |
 
-### Agent Orchestration
-- **Agent**: Spawn specialized research agents for deep dives
+The synthesis step uses confidence to:
+- Flag low-confidence findings for follow-up
+- Prioritize high-confidence findings in recommendations
+- Warn the user when recommendations rest on uncertain data
+
+---
 
 ## Quality Standards
 
-Research outputs should meet these criteria:
+Research outputs must meet:
 
-1. **Accuracy**: Cross-referenced with official sources
-2. **Relevance**: Directly applicable to user's question
-3. **Actionability**: Includes specific recommendations
-4. **Completeness**: Covers all aspects of the topic
-5. **Clarity**: Well-organized and easy to understand
-6. **Timeliness**: Focuses on current capabilities (2024-2026)
+1. **Accurate**: Cross-referenced with official sources; confidence-tagged
+2. **Relevant**: Directly applicable to user's question
+3. **Actionable**: Includes specific recommendations with priority
+4. **Complete**: Covers internal context + competitive landscape
+5. **Efficient**: Uses cache hits; only researches what's needed
+6. **Shareable**: Saved locally; optionally published to Slack canvas if available
+
+---
 
 ## Common Pitfalls to Avoid
 
-1. **Over-researching**: Don't spend hours on tangential topics
-2. **Stale information**: Agentforce launched in 2024; prioritize recent sources
-3. **Missing the question**: Always circle back to what user actually asked
-4. **Technical jargon overload**: Balance detail with readability
+1. **Re-researching known topics**: Always check the research index first
+2. **Oversized agent briefs**: Keep each stream's brief under 400 words
+3. **Stale information**: Agentforce launched in 2024; prioritize recent sources
+4. **Missing the question**: Always circle back to what user actually asked
 5. **No clear recommendation**: User wants guidance, not just data dump
-
-## Example Usage
-
-**User request**: "I want to add a skill export feature to Prompt Builder that generates skill.md files compatible with Claude Code."
-
-**Skill execution**:
-
-1. **Scope definition**: Research skill.md format, MCP server configuration, Salesforce metadata export patterns, and file generation APIs
-   
-2. **Spawn research agent**: 
-   ```
-   Research: (1) Claude skill.md structure and requirements, 
-   (2) MCP server configuration format, 
-   (3) Salesforce metadata API export patterns, 
-   (4) File generation and download in Lightning
-   ```
-
-3. **Synthesize findings**: Create export architecture plan covering:
-   - skill.md format specification
-   - Data model mapping (Salesforce objects → skill.md sections)
-   - MCP config generation approach
-   - File generation service design
-   - Security considerations for export
-
-4. **Answer user**: "Yes, skill export is feasible. Here's the recommended approach: [summary]. Full research saved to `.agents/artifacts/prompt-builder-skill-export-analysis-2026-04-21.md`"
-
-## Continuous Improvement
-
-After each research session:
-- Note which sources were most valuable
-- Identify gaps in research coverage
-- Update this skill with new patterns or sources
-- Refine research agent prompts based on output quality
+6. **Forgetting to update index**: After every research, update research-index.md
+7. **Assuming Slack is available**: Only offer Slack publishing if tools are accessible and user requests it
 
 ---
 
 ## Version History
 
-**v1.0.0** (2026-04-21)
-- Initial skill creation
-- Core research methodology defined
-- Five common research patterns documented
+- **v2.0.0** (2026-04-24): Major upgrade — research caching, multi-agent parallel streams, MCP tool integration, Slack canvas auto-publish, confidence scoring
+- **v1.1.0** (2026-04-21): Added competitive analysis framework
+- **v1.0.0** (2026-04-21): Initial skill creation

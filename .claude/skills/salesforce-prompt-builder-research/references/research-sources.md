@@ -197,6 +197,83 @@ When researching a new topic:
 - [ ] Record sources for future reference
 - [ ] Flag gaps requiring follow-up research
 
+## MCP Tools as Research Sources (v2.0)
+
+These tools are available in some environments and provide richer research than web search alone. Use them when available; fall back to web search when not.
+
+### Codesearch (Internal Code Intelligence)
+
+| Tool | Use Case | Example |
+|------|----------|---------|
+| `codesearch__search` | Find real implementation patterns | `content:"PromptTemplate" lang:java` |
+| `codesearch__blob` | Read a specific source file in detail | Follow up on search hits |
+| `codesearch__tree` | Browse package/directory structure | Find related files |
+| `codesearch__history` | See recent changes to a file | Track what changed recently |
+| `codesearch__blame` | Find code ownership | Who wrote this logic |
+
+**When to use:** Researching how Salesforce features actually work internally. Codesearch gives ground truth that documentation may not cover (edge cases, internal APIs, implementation details).
+
+**Search tips:**
+- Use `content:"ClassName"` for exact class/method names
+- Use `lang:java` or `lang:javascript` to filter by language
+- Combine with `repo:"gitcore.soma.salesforce.com"` for Salesforce repos
+
+### Enterprise Search (Internal Knowledge)
+
+| Tool | Use Case | Example |
+|------|----------|---------|
+| `search__search` | Search Confluence, Quip, Slack, internal docs | "Prompt Builder architecture decision" |
+
+**When to use:** Finding design decisions, architecture docs, team discussions that explain WHY something was built a certain way. This context is not in code or public docs.
+
+**Search tips:**
+- Try different phrasings: "prompt builder" vs "PromptBuilder" vs "prompt template"
+- Filter by source type if available (Confluence vs Quip vs Slack)
+
+### GUS (Work Tracking)
+
+| Tool | Use Case | Example |
+|------|----------|---------|
+| GUS skill (`sfcli:gus`) | Query epics, work items, sprints | "What epics are in flight for Prompt Builder?" |
+
+**When to use:** Understanding roadmap context, what's planned vs shipped, who owns what, sprint timelines.
+
+### Browser (Live Competitor Research)
+
+| Tool | Use Case | Example |
+|------|----------|---------|
+| `browser__browser_navigate` | Visit competitor pages | Navigate to platform.openai.com |
+| `browser__browser_screenshot` | Capture current UI state | Screenshot of GPT Builder interface |
+| `browser__browser_a11y_tree` | Analyze page structure | Understand competitor interaction model |
+
+**When to use:** Getting current visual evidence of competitor products. Blog posts go stale; the live product is always current.
+
+**Key competitor URLs:**
+- OpenAI: platform.openai.com, chatgpt.com
+- Microsoft: copilotstudio.microsoft.com
+- Google: cloud.google.com/vertex-ai
+- Anthropic: docs.anthropic.com
+
+### Slack (Team Context & Sharing)
+
+| Tool | Use Case | Example |
+|------|----------|---------|
+| `slack_search_public` | Find competitive intel discussions | "GPT Builder vs" in team channels |
+| `slack_read_canvas` | Check existing research canvases | What was previously shared |
+| `slack_create_canvas` | Publish new research findings | Share with team |
+| `slack_update_canvas` | Refresh existing research canvas | Update stale findings |
+
+**When to use:** Slack tools are OPTIONAL. Only use if available in the environment AND the user requests Slack publishing. Local artifacts are always the primary output.
+
+### Tool Availability Note
+
+Not all environments will have all tools. The skill is designed to work with whatever is available:
+- **Minimum (always works):** Web search + file read/write for local artifacts
+- **Enhanced:** + codesearch + enterprise search + GUS for internal context
+- **Full:** + browser + Slack + Google Docs for live research and team sharing
+
+---
+
 ## Red Flags in Research
 
 Be cautious of:

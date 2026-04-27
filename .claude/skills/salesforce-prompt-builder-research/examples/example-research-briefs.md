@@ -879,3 +879,157 @@ Provide:
 ---
 
 These templates and examples should help you quickly construct effective research briefs for any Prompt Builder feature investigation, with comprehensive competitive analysis included.
+
+---
+
+## v2.0 Stream-Specific Brief Templates
+
+The following templates are for the parallel stream architecture introduced in v2.0. Each stream gets a focused brief instead of the full monolithic research scope.
+
+---
+
+### Stream 1 Template: Salesforce Internal Context
+
+```
+Research Salesforce internal context for: [SPECIFIC TOPIC]
+
+Context: [1-2 sentences on why this matters for the user's request]
+
+Research using these tools IN THIS ORDER:
+1. Codesearch: Search for relevant class names, APIs, or configuration
+   - Try: content:"[ClassName]" lang:java
+   - Try: content:"[FeatureName]" path:"[likely/path]"
+2. Enterprise search: Find design docs, architecture decisions
+   - Try: "[Feature] design doc" or "[Feature] architecture"
+3. GUS: Check for related epics or work items
+   - Look for: active work items mentioning [feature/topic]
+4. Web search (fallback): Official Salesforce documentation
+   - site:developer.salesforce.com "[topic]"
+   - site:help.salesforce.com "[topic]"
+
+Specific questions to answer:
+1. [Most important question about internal implementation]
+2. [Second question about architecture/data model]
+3. [Third question about constraints/limits]
+
+Tag each finding with confidence:
+- HIGH: Verified from source code or official docs
+- MEDIUM: From credible secondary source
+- LOW: Inferred or from dated source
+
+Output: Structured findings under 800 words with code references.
+Do NOT research competitors -- that's handled by a separate agent.
+```
+
+---
+
+### Stream 2 Template: Competitive & Market Research
+
+```
+Research competitive landscape for: [SPECIFIC TOPIC/FEATURE]
+
+Context: [1-2 sentences on what Salesforce is considering building]
+
+Focus on these competitors (pick top 3-4 most relevant):
+- OpenAI GPT Builder / Custom GPTs
+- Microsoft Copilot Studio
+- Google Vertex AI Agent Builder
+- Anthropic Claude (skills, MCP)
+- Amazon Bedrock Agents
+- [Any adjacent competitor if relevant: Zapier, LangChain, ServiceNow]
+
+For each relevant competitor answer:
+1. Does it offer [feature]? How is it implemented?
+2. Strengths: What does it do well?
+3. Weaknesses: Where does it fall short?
+4. User sentiment: Any reviews/complaints? (check if accessible)
+
+Research approach:
+1. Browser: Navigate to competitor product pages, take screenshots of relevant UI
+2. Web search: Recent articles, documentation, announcements (2024-2026)
+3. Reviews: Check user review sites if accessible (G2, Capterra)
+
+Also identify:
+- Table stakes: Features ALL competitors offer (must match)
+- Gaps: Features NO competitor offers well (opportunity)
+- Threats: Features where a competitor clearly leads
+
+Create a comparison matrix table in your output.
+
+Tag findings with confidence (HIGH/MEDIUM/LOW).
+
+Output: Structured comparison under 800 words with matrix.
+Do NOT research Salesforce internals -- that's handled by a separate agent.
+```
+
+---
+
+### Cache Hit Scenario Example
+
+**User asks:** "How does Glean's agent builder compare to Prompt Builder?"
+
+**Phase 2 (Cache Check) discovers:**
+- `glean-platform-research` — dated 2026-04-24, category: competitive, freshness 30 days → FRESH (expires 2026-05-24)
+- `prompt-builder-vs-glean` — dated 2026-04-24, category: competitive-comparison, freshness 30 days → FRESH
+- `salesforce-feature-inventory` — dated 2026-04-24, category: salesforce-docs, freshness 90 days → FRESH
+
+**Result:** ALL topics have fresh cache hits. No research agents need to be spawned.
+
+**Action:**
+1. Read the three cached artifacts
+2. Go directly to Synthesis (Phase 3, Stream 3)
+3. Answer the user using cached findings
+4. Inform user: "Using existing research from April 24 (still fresh). No new research needed."
+
+**Token savings:** ~90% (only reading cached files vs spawning 2 full research agents)
+
+---
+
+### Stale Cache + Refresh Example
+
+**User asks:** "What's new with Microsoft Copilot Studio since we last looked?"
+
+**Phase 2 (Cache Check) discovers:**
+- No direct match for "Microsoft Copilot Studio" in research index
+- `competitive-analysis-enhancement` has general competitor info but is about the framework, not a specific analysis
+- The competitive framework reference file has a profile but it's static documentation, not research
+
+**Result:** Cache MISS for this specific topic.
+
+**Action:**
+1. Spawn Stream 2 (Competitive) only — no need for Stream 1 (internal context) for this request
+2. Brief focuses specifically on Microsoft Copilot Studio recent changes
+3. Agent uses browser to check copilotstudio.microsoft.com for current state
+4. Save new artifact: `microsoft-copilot-studio-research-2026-04-24.md`
+5. Update research index with new entry
+
+---
+
+### Partial Cache Hit Example
+
+**User asks:** "Can we add a visual canvas builder like competitors have? How do they do it?"
+
+**Phase 2 (Cache Check) discovers:**
+- `salesforce-skills-plan` has architecture section on canvas UI → FRESH (architecture, 180 days)
+- No specific competitive research on "visual canvas builder" → MISS
+
+**Result:** Partial hit — internal context is cached, competitive research is needed.
+
+**Action:**
+1. Read cached `salesforce-skills-plan.md` for internal architecture context
+2. Spawn Stream 2 ONLY (competitive) — brief focuses on visual canvas builders across competitors
+3. Skip Stream 1 — cache already provides internal context
+4. Synthesize cached internal + fresh competitive findings
+
+**Token savings:** ~50% (skipped one full agent, used cache for internal context)
+
+---
+
+## Tips for v2.0 Brief Writing
+
+1. **Keep briefs under 400 words** — focused agents produce better results than overloaded ones
+2. **Be explicit about which tools to use** — agents don't automatically know what's available
+3. **Specify what NOT to research** — prevents stream overlap
+4. **Include 3 specific questions** — gives the agent clear targets
+5. **Always request confidence tagging** — enables quality assessment in synthesis
+6. **Set word limits on output** — prevents token bloat in responses
